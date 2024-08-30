@@ -11,13 +11,13 @@ echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 # Create Docker network if it doesn't exist
 docker network inspect my-buffer-network >/dev/null 2>&1 || docker network create my-buffer-network
 
-# Function to stop and remove existing containers based on image name
+# Function to stop and remove existing containers based on container name
 stop_and_remove_container() {
-  image_name=$1
-  container_id=$(docker ps --filter "ancestor=$image_name" --format "{{.ID}}")
+  container_name=$1
+  container_id=$(docker ps -a --filter "name=$container_name" --format "{{.ID}}")
 
   if [ -n "$container_id" ]; then
-    echo "Stopping and removing the running container for $image_name..."
+    echo "Stopping and removing the existing container $container_name..."
     docker stop "$container_id"
     docker rm "$container_id"
   fi
@@ -25,26 +25,30 @@ stop_and_remove_container() {
 
 # Buffer DB
 db_image="guerdellyeya/mysql-buffer:finalversion"
-stop_and_remove_container "$db_image"
+db_container_name="buffer_container"
+stop_and_remove_container "$db_container_name"
 docker pull "$db_image"
-docker run --network my-buffer-network -d --name buffer_container -p 3309:3306 "$db_image"
+docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 "$db_image"
 
 # RegistrationLogin service
 registration_image="guerdellyeya/registrationloginfv:finalversion"
-stop_and_remove_container "$registration_image"
+registration_container_name="registration_login_service"
+stop_and_remove_container "$registration_container_name"
 docker pull "$registration_image"
-docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3306/buffer "$registration_image"
+docker run --network my-buffer-network -d --name "$registration_container_name" -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3306/buffer "$registration_image"
 
 # Angular Frontend
 frontend_image="guerdellyeya/angular-buffer-project:finalversion"
-stop_and_remove_container "$frontend_image"
+frontend_container_name="angular_frontend"
+stop_and_remove_container "$frontend_container_name"
 docker pull "$frontend_image"
-docker run --network my-buffer-network -d -p 4201:80 "$frontend_image"
+docker run --network my-buffer-network -d --name "$frontend_container_name" -p 4201:80 "$frontend_image"
 
 # CSV microservice
 csv_image="guerdellyeya/csvfv:finalversion"
-stop_and_remove_container "$csv_image"
+csv_container_name="csv_microservice"
+stop_and_remove_container "$csv_container_name"
 docker pull "$csv_image"
-docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3306/buffer "$csv_image"
+docker run --network my-buffer-network -d --name "$csv_container_name" -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3306/buffer "$csv_image"
 
-echo "All containers are up and running."
+echo "All containers are up and running."
