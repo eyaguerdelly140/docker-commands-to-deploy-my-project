@@ -33,7 +33,7 @@ docker run --network my-buffer-network -d --name buffer_container -p 3309:3306 "
 registration_image="guerdellyeya/registrationloginfv:finalversion"
 stop_and_remove_container "$registration_image"
 docker pull "$registration_image"
-docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3309/buffer "$registration_image"
+docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3306/buffer "$registration_image"
 
 # Angular Frontend
 frontend_image="guerdellyeya/angular-buffer-project:finalversion"
@@ -45,6 +45,6 @@ docker run --network my-buffer-network -d -p 4201:80 "$frontend_image"
 csv_image="guerdellyeya/csvfv:finalversion"
 stop_and_remove_container "$csv_image"
 docker pull "$csv_image"
-docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3309/buffer "$csv_image"
+docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3306/buffer "$csv_image"
 
 echo "All containers are up and running."
