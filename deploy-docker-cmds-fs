@@ -7,41 +7,44 @@ DOCKER_PASSWORD="14026673a"
 # Log in to Docker registry
 echo "Logging in to Docker registry..."
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  
-#create my network
-docker network create my-buffer-network
 
-# Function to stop and remove the container if it's already running
+# Create Docker network if it doesn't exist
+docker network inspect my-buffer-network >/dev/null 2>&1 || docker network create my-buffer-network
+
+# Function to stop and remove existing containers based on image name
 stop_and_remove_container() {
-  container_name=$1
-  if [ "$(docker ps -q -f name=$container_name)" ]; then
-    echo "Stopping and removing existing container $container_name..."
-    docker stop $container_name
-    docker rm $container_name
+  image_name=$1
+  container_id=$(docker ps --filter "ancestor=$image_name" --format "{{.ID}}")
+
+  if [ -n "$container_id" ]; then
+    echo "Stopping and removing the running container for $image_name..."
+    docker stop "$container_id"
+    docker rm "$container_id"
   fi
 }
 
-# Pull the latest buffer db image and run the container
-stop_and_remove_container "buffer_container"
-docker pull guerdellyeya/mysql-buffer:finalversion
-echo "Running the new container for guerdellyeya/mysql-buffer:finalversion..."
-db_container_name="buffer_container"
-docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 guerdellyeya/mysql-buffer:finalversion
+# Buffer DB
+db_image="guerdellyeya/mysql-buffer:finalversion"
+stop_and_remove_container "$db_image"
+docker pull "$db_image"
+docker run --network my-buffer-network -d --name buffer_container -p 3309:3306 "$db_image"
 
-# Pull the latest registrationloginfv image and run the container
-stop_and_remove_container "registrationlogin_container"
-docker pull guerdellyeya/registrationloginfv:finalversion
-echo "Running the new container for guerdellyeya/registrationloginfv:finalversion..."
-docker run --network my-buffer-network -d --name "registrationlogin_container" -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/registrationloginfv:finalversion
+# RegistrationLogin service
+registration_image="guerdellyeya/registrationloginfv:finalversion"
+stop_and_remove_container "$registration_image"
+docker pull "$registration_image"
+docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3309/buffer "$registration_image"
 
-# Pull the latest angular front image and run the container
-stop_and_remove_container "angular_buffer_container"
-docker pull guerdellyeya/angular-buffer-project:finalversion
-echo "Running the new container for guerdellyeya/angular-buffer-project:finalversion..."
-docker run --network my-buffer-network -d --name "angular_buffer_container" -p 4201:80 guerdellyeya/angular-buffer-project:finalversion
+# Angular Frontend
+frontend_image="guerdellyeya/angular-buffer-project:finalversion"
+stop_and_remove_container "$frontend_image"
+docker pull "$frontend_image"
+docker run --network my-buffer-network -d -p 4201:80 "$frontend_image"
 
-# Pull the latest csvfv microservice image and run the container
-stop_and_remove_container "csvfv_container"
-docker pull guerdellyeya/csvfv:finalversion
-echo "Running the new container for guerdellyeya/csvfv:finalversion..."
-docker run --network my-buffer-network -d --name "csvfv_container" -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/csvfv:finalversion
+# CSV microservice
+csv_image="guerdellyeya/csvfv:finalversion"
+stop_and_remove_container "$csv_image"
+docker pull "$csv_image"
+docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://buffer_container:3309/buffer "$csv_image"
+
+echo "All containers are up and running."
