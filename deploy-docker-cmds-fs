@@ -26,7 +26,7 @@ docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:33
 docker pull guerdellyeya/registrationloginfv:finalversion
 
 # Run the Docker command with the extracted container name replacing 'database_name'
-docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer:finalversion guerdellyeya/registrationloginfv:finalversion
+docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/registrationloginfv:finalversion
 
 
 
