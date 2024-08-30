@@ -13,12 +13,12 @@ docker network create my-buffer-network
 
 
 # Pull the latest buffer  db image
-docker pull guerdellyeya/buffer
+docker pull guerdellyeya/mysql-buffer:finalversion
 
 # Run a new container for the buffer db image
-echo "Running the new container for guerdellyeya/buffer:finalversion..."
+echo "Running the new container for guerdellyeya/mysql-buffer:finalversion..."
 db_container_name="buffer_container"
-docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 guerdellyeya/buffer:finalversion
+docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 guerdellyeya/mysql-buffer:finalversion
 
 
 
