@@ -31,11 +31,11 @@ docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=
 
 
 # Pull the latest angular front  image
-docker pull guerdellyeya/angular-buffer:latest
+docker pull guerdellyeya/angular-buffer-project:latest
 
 # Run a new container for the planning image
-echo "Running the new container for guerdellyeya/angular-buffer:latest..."
-docker run --network my-buffer-network -d -p 4201:80 guerdellyeya/angular-buffer:latest
+echo "Running the new container for guerdellyeya/angular-buffer-project:latest..."
+docker run --network my-buffer-network -d -p 4201:80 guerdellyeya/angular-buffer-project:latest
 
 
 # Pull the latest csvfv microservice image image
