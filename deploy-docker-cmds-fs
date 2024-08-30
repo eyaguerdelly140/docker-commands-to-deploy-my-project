@@ -13,35 +13,35 @@ docker network create my-buffer-network
 
 
 # Pull the latest buffer  db image
-docker pull guerdellyeya/buffer:latest
+docker pull guerdellyeya/buffer
 
 # Run a new container for the buffer db image
-echo "Running the new container for guerdellyeya/buffer:latest..."
+echo "Running the new container for guerdellyeya/buffer..."
 db_container_name="buffer_container"
-docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 guerdellyeya/buffer:latest
+docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 guerdellyeya/buffer
 
 
 
 # Pull the latest registrationloginfv image
-docker pull guerdellyeya/registrationloginfv:latest
+docker pull guerdellyeya/registrationloginfv
 
 # Run the Docker command with the extracted container name replacing 'database_name'
-docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/registrationloginfv:latest
+docker run --network my-buffer-network -d -p 8091:8081 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/registrationloginfv
 
 
 
 # Pull the latest angular front  image
-docker pull guerdellyeya/angular-buffer-project:latest
+docker pull guerdellyeya/angular-buffer-project
 
 # Run a new container for the planning image
-echo "Running the new container for guerdellyeya/angular-buffer-project:latest..."
-docker run --network my-buffer-network -d -p 4201:80 guerdellyeya/angular-buffer-project:latest
+echo "Running the new container for guerdellyeya/angular-buffer-project..."
+docker run --network my-buffer-network -d -p 4201:80 guerdellyeya/angular-buffer-project
 
 
 # Pull the latest csvfv microservice image image
-docker pull guerdellyeya/csvfv:latest
+docker pull guerdellyeya/csvfv
 
 # Run a new container for the csvfv image
-echo "Running the new container for guerdellyeya/team:latest..."
-docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/csvfv:latest
+echo "Running the new container for guerdellyeya/csvfv..."
+docker run --network my-buffer-network -d -p 8092:8082 -e SPRING_DATASOURCE_URL=jdbc:mysql://$db_container_name:3309/buffer guerdellyeya/csvfv
 
