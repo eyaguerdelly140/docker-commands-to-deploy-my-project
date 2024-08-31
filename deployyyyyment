@@ -48,6 +48,20 @@ docker run --network my-buffer-network -d --name "$frontend_container_name" -p 4
   echo "Failed to start Docker container '$frontend_container_name'"
   exit 1
 }
+# MySQL Database
+db_image="guerdellyeya/mysql-buffer1:finalversion"
+db_container_name="mysql-buffer1-container"
+stop_and_remove_container "$db_container_name"
+echo "Pulling Docker image '$db_image'..."
+docker pull "$db_image" || {
+  echo "Failed to pull Docker image '$db_image'"
+  exit 1
+}
+echo "Starting Docker container '$db_container_name'..."
+docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 "$db_image" || {
+  echo "Failed to start Docker container '$db_container_name'"
+  exit 1
+}
 
 # RegistrationLogin service
 registration_image="guerdellyeya/registrationloginfv1:finalversion1"
@@ -64,20 +78,7 @@ docker run --network my-buffer-network -d --name "$registration_container_name" 
   exit 1
 }
 
-# MySQL Database
-db_image="guerdellyeya/mysql-buffer1:finalversion"
-db_container_name="mysql-buffer1-container"
-stop_and_remove_container "$db_container_name"
-echo "Pulling Docker image '$db_image'..."
-docker pull "$db_image" || {
-  echo "Failed to pull Docker image '$db_image'"
-  exit 1
-}
-echo "Starting Docker container '$db_container_name'..."
-docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 "$db_image" || {
-  echo "Failed to start Docker container '$db_container_name'"
-  exit 1
-}
+
 
 # CSV microservice
 csv_image="guerdellyeya/csvfv1:finalversion1"
