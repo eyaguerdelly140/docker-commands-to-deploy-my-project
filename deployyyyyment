@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# Docker registry credentials
+DOCKER_USERNAME="guerdellyeya"
+DOCKER_PASSWORD="14026673a"
+
+# Log in to Docker registry
+echo "Logging in to Docker registry..."
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || {
+  echo "Docker login failed"
+  exit 1
+}
+
+# Create Docker network if it doesn't exist
+if ! docker network inspect my-buffer-network >/dev/null 2>&1; then
+  echo "Creating Docker network 'my-buffer-network'..."
+  docker network create my-buffer-network || {
+    echo "Failed to create Docker network"
+    exit 1
+  }
+fi
+
+# Function to stop and remove existing containers based on container name
+stop_and_remove_container() {
+  local container_name=$1
+  local container_id=$(docker ps -a --filter "name=$container_name" --format "{{.ID}}")
+
+  if [ -n "$container_id" ]; then
+    echo "Stopping and removing the existing container '$container_name'..."
+    docker stop "$container_id" && docker rm "$container_id" || {
+      echo "Failed to stop and remove container '$container_name'"
+      exit 1
+    }
+  fi
+}
+
+# Angular Frontend
+frontend_image="guerdellyeya/angular-buffer1-project:finalversion1"
+frontend_container_name="angular_frontend"
+stop_and_remove_container "$frontend_container_name"
+echo "Pulling Docker image '$frontend_image'..."
+docker pull "$frontend_image" || {
+  echo "Failed to pull Docker image '$frontend_image'"
+  exit 1
+}
+echo "Starting Docker container '$frontend_container_name'..."
+docker run --network my-buffer-network -d --name "$frontend_container_name" -p 4201:80 "$frontend_image" || {
+  echo "Failed to start Docker container '$frontend_container_name'"
+  exit 1
+}
+
+# RegistrationLogin service
+registration_image="guerdellyeya/registrationloginfv1:finalversion1"
+registration_container_name="registration_login_service"
+stop_and_remove_container "$registration_container_name"
+echo "Pulling Docker image '$registration_image'..."
+docker pull "$registration_image" || {
+  echo "Failed to pull Docker image '$registration_image'"
+  exit 1
+}
+echo "Starting Docker container '$registration_container_name'..."
+docker run --network my-buffer-network -d --name "$registration_container_name" -p 8085:8085 -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql-buffer1-container:3306/buffer "$registration_image" || {
+  echo "Failed to start Docker container '$registration_container_name'"
+  exit 1
+}
+
+# MySQL Database
+db_image="guerdellyeya/mysql-buffer1:finalversion"
+db_container_name="mysql-buffer1-container"
+stop_and_remove_container "$db_container_name"
+echo "Pulling Docker image '$db_image'..."
+docker pull "$db_image" || {
+  echo "Failed to pull Docker image '$db_image'"
+  exit 1
+}
+echo "Starting Docker container '$db_container_name'..."
+docker run --network my-buffer-network -d --name "$db_container_name" -p 3309:3306 "$db_image" || {
+  echo "Failed to start Docker container '$db_container_name'"
+  exit 1
+}
+
+# CSV microservice
+csv_image="guerdellyeya/csvfv1:finalversion1"
+csv_container_name="csvfv1-container"
+stop_and_remove_container "$csv_container_name"
+echo "Pulling Docker image '$csv_image'..."
+docker pull "$csv_image" || {
+  echo "Failed to pull Docker image '$csv_image'"
+  exit 1
+}
+echo "Starting Docker container '$csv_container_name'..."
+docker run --network my-buffer-network -d --name "$csv_container_name" -p 8086:8086 "$csv_image" || {
+  echo "Failed to start Docker container '$csv_container_name'"
+  exit 1
+}
+
+echo "All containers are up and running."
